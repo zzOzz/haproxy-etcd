@@ -1,0 +1,43 @@
+global
+    daemon
+    log /dev/log   local0
+    log /dev/log   local1 notice
+    pidfile /var/run/haproxy.pid
+    nbproc  1
+    maxconn 128000
+
+defaults
+    log    global
+    option log-health-checks
+    log-format {"type":"haproxy","timestamp":%Ts,"remote_addr":"%ci","bytes_read":%B,"upstream_addr":"%si","backend_name":"%b","retries":%rc,"bytes_uploaded":%U,"upstream_connect_time":"%Tc","session_duration":"%Tt","termination_state":"%ts"}
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
+
+{{range $port := ls "/tcp-services"}}
+
+listen {{$port}}-cluster
+    mode tcp
+    bind *:{{$port}}
+    {{range $hostIP := ls (printf "/tcp-services/%s" $port)}}
+      server {{printf "%s-%s" $port $hostIP}} {{printf "/tcp-services/%s/%s" $port $hostIP | getv}} check weight 1
+    {{end}}
+    stick-table type ip size 1m expire 1h
+    stick on src
+
+{{end}}
+
+listen MyStats
+    mode http
+    bind 0.0.0.0:1000
+    stats enable
+    stats uri /
+    stats refresh 5s
+    stats show-node
+    stats show-legends
+    acl auth_ok http_auth(stats-auth)
+    http-request auth unless auth_ok
+
+userlist stats-auth
+    user {{getenv "HAPROXY_ADMIN"}} insecure-password {{getenv "HAPROXY_PWD"}}

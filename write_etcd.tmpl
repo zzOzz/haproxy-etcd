@@ -1,0 +1,19 @@
+#!/bin/sh
+
+grep $(echo $ETCDCTL_ENDPOINT | awk -F/ '{print $3}'|awk -F: '{print $1}') /etc/hosts || cat /tmp/hosts >> /etc/hosts
+
+# Genenerated by {{ .Env.ETCDCTL_ENDPOINT }}
+# Docker Version {{ .Docker.Version }}
+
+{{range $key, $container:= .}
+{{ $addrLen := len $container.Addresses }}
+{{ if gt $addrLen 0 }}
+{{ with $address := index $container.Addresses 0 }}
+# {{ $container.Name }}
+#
+etcdctl rm --recursive /haproxy-discover/tcp-services/{{$address.Port}}/{{$container.Gateway}}
+etcdctl set "/haproxy-discover/tcp-services/{{$address.Port}}/{{$container.Gateway}}" "{{ $address.IP }}:{{ $address.Port }}"
+{{ end }}
+{{end}}
+{{end}}
+#etcdctl rm --recursive /nginx-proxy

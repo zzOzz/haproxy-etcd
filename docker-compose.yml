@@ -1,0 +1,25 @@
+haproxy:
+  hostname: haproxy
+  domainname: ad.universite-lyon.fr
+  build: .
+  environment:
+    VIRTUAL_HOST: haproxy.universite-lyon.fr
+    VIRTUAL_PORT: 1000
+    ETCDCTL_ENDPOINT: https://clusterpp:4001
+    ETCDCTL_CA_FILE: /etc/ssl/ca.pem
+    ETCDCTL_KEY_FILE: /etc/ssl/server-key.pem
+    ETCDCTL_CERT_FILE: /etc/ssl/server.pem
+    HAPROXY_ADMIN: admin
+    HAPROXY_PWD: p4ss
+  volumes:
+    - /etc/ssl/server.pem:/etc/ssl/server.pem:ro
+    - /etc/ssl/ca.pem:/etc/ssl/ca.pem:ro
+    - /etc/ssl/server-key.pem:/etc/ssl/server-key.pem:ro
+    - /etc/hosts:/tmp/hosts:ro
+    - /var/run/docker.sock:/tmp/docker.sock
+  dns:
+    - 172.16.17.10
+  dns_search:
+    - ad.universite-lyon.fr
+  ports:
+    - 1000
