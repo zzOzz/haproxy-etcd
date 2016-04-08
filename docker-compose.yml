@@ -1,7 +1,8 @@
 haproxy:
   hostname: haproxy
   domainname: ad.universite-lyon.fr
-  build: .
+  # build: .
+  image: registry.universite-lyon.fr/haproxyetcd_haproxy
   environment:
     VIRTUAL_HOST: haproxy.universite-lyon.fr
     VIRTUAL_PORT: 1000
@@ -10,7 +11,7 @@ haproxy:
     ETCDCTL_KEY_FILE: /etc/ssl/server-key.pem
     ETCDCTL_CERT_FILE: /etc/ssl/server.pem
     HAPROXY_ADMIN: admin
-    HAPROXY_PWD: p4ss
+    HAPROXY_PWD: loua733!page
   volumes:
     - /etc/ssl/server.pem:/etc/ssl/server.pem:ro
     - /etc/ssl/ca.pem:/etc/ssl/ca.pem:ro
